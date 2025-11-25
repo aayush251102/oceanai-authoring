@@ -19,9 +19,11 @@ export default function CreateProject() {
     { title: "Slide 2" }
   ]);
 
-  // --------------------------------
+  const token = localStorage.getItem("token");
+
+  // ----------------------
   // Helpers
-  // --------------------------------
+  // ----------------------
   const moveUp = (index, list, setter) => {
     if (index === 0) return;
     const updated = [...list];
@@ -40,6 +42,14 @@ export default function CreateProject() {
     setter(list.filter((_, i) => i !== index));
   };
 
+  const addSection = () => {
+    setSections([...sections, ""]);
+  };
+
+  const addSlide = () => {
+    setSlides([...slides, { title: "" }]);
+  };
+
   const updateSection = (index, value) => {
     const updated = [...sections];
     updated[index] = value;
@@ -52,12 +62,12 @@ export default function CreateProject() {
     setSlides(updated);
   };
 
-  // --------------------------------
-  // 🤖 AI Suggest Outline (NO PROJECT CREATION)
-  // --------------------------------
+  // ----------------------
+  // 🤖 AI Suggest Outline
+  // ----------------------
   const aiSuggestOutline = async () => {
     if (!title || !topic) {
-      alert("Please fill Title and Topic first");
+      alert("Fill title & topic first");
       return;
     }
 
@@ -65,7 +75,7 @@ export default function CreateProject() {
 
     try {
       const res = await API.post("/projects/ai-outline", {
-        topic: topic,
+        topic,
         doc_type: docType
       });
 
@@ -74,22 +84,20 @@ export default function CreateProject() {
       if (docType === "docx") {
         setSections(aiSections);
       } else {
-        setSlides(aiSections.map((title) => ({ title })));
+        setSlides(aiSections.map((t) => ({ title: t })));
       }
 
-      alert("✅ AI Outline Loaded");
-
     } catch (err) {
-      console.log(err);
-      alert("❌ AI Suggest failed");
+      console.error(err);
+      alert("AI Outline failed");
     }
 
     setLoadingAI(false);
   };
 
-  // --------------------------------
-  // CREATE PROJECT (ONLY HERE)
-  // --------------------------------
+  // ----------------------
+  // 📦 CREATE PROJECT
+  // ----------------------
   const createProject = async () => {
     if (!title || !topic) {
       alert("Please fill Title and Topic");
@@ -107,125 +115,137 @@ export default function CreateProject() {
           title,
           topic,
           doc_type: docType,
-          token: localStorage.getItem("token")
-        },
-      });
-
-      const id = res.data.project_id;
-
-      await API.post(`/projects/${id}/set-outline`, {
-        outline
-      }, {
-        params: {
-          token: localStorage.getItem("token")
+          token
         }
       });
 
-      alert("✅ Project created successfully!");
-      navigate(`/project/${id}`);
+      const projectId = res.data.project_id;
+
+      await API.post(
+        `/projects/${projectId}/set-outline`,
+        { outline },
+        { params: { token } }
+      );
+
+      alert("✅ Project created");
+      navigate(`/project/${projectId}`);
 
     } catch (err) {
-      console.log("Create error:", err);
-      alert("❌ Error creating project");
+      console.error(err);
+      alert("Error creating project");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
-      <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-8">
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-xl p-8">
 
         <h1 className="text-3xl font-bold mb-6">Create New Project</h1>
 
         {/* TITLE */}
-        <label className="block mb-2 font-semibold">Project Title</label>
         <input
-          placeholder="Enter project title..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full p-3 bg-white border border-gray-300 text-black rounded mb-6 placeholder-gray-500"
+          placeholder="Project Title"
+          className="w-full p-3 border-2 border-gray-800 rounded text-black bg-white placeholder-gray-500 mb-4"
         />
 
         {/* TOPIC */}
-        <label className="block mb-2 font-semibold">Main Topic</label>
         <input
-          placeholder="Enter main topic..."
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          className="w-full p-3 bg-white border border-gray-300 text-black rounded mb-6 placeholder-gray-500"
+          placeholder="Main Topic"
+          className="w-full p-3 border-2 border-gray-800 rounded text-black bg-white placeholder-gray-500 mb-4"
         />
 
         {/* DOC TYPE */}
-        <label className="block mb-2 font-semibold">Document Type</label>
         <select
           value={docType}
           onChange={(e) => setDocType(e.target.value)}
-          className="w-full p-3 bg-white border border-gray-300 text-black rounded mb-6"
+          className="w-full p-3 border-2 border-gray-800 rounded text-black bg-white mb-6"
         >
           <option value="docx">Microsoft Word (.docx)</option>
           <option value="pptx">PowerPoint (.pptx)</option>
         </select>
 
-        {/* AI BUTTON */}
+        {/* AI Button */}
         <button
           onClick={aiSuggestOutline}
-          className="w-full mb-6 bg-purple-600 text-white py-3 rounded-lg text-lg shadow hover:bg-purple-700"
+          className="w-full bg-purple-600 text-white py-3 rounded-lg mb-6"
         >
-          {loadingAI ? "AI is thinking..." : "🤖 AI Suggest Outline"}
+          {loadingAI ? "AI thinking..." : "🤖 AI Suggest Outline"}
         </button>
 
-        {/* DOCX OUTLINE */}
+        {/* DOCX Sections */}
         {docType === "docx" && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Outline Sections</h2>
+          <>
+            <h2 className="font-semibold mb-4">Outline Sections</h2>
 
             {sections.map((s, i) => (
-              <div key={i} className="flex items-center gap-3 mb-4">
+              <div key={i} className="flex gap-2 mb-3">
                 <input
                   value={s}
                   onChange={(e) => updateSection(i, e.target.value)}
-                  className="flex-1 p-3 bg-white border border-gray-300 text-black rounded"
+                  className="flex-1 p-2 border-2 border-gray-800 rounded text-black bg-white"
                 />
-
-                <button onClick={() => moveUp(i, sections, setSections)} className="px-3 py-2 bg-black text-white rounded">↑</button>
-                <button onClick={() => moveDown(i, sections, setSections)} className="px-3 py-2 bg-black text-white rounded">↓</button>
-                <button onClick={() => removeItem(i, sections, setSections)} className="px-3 py-2 bg-red-600 text-white rounded">✕</button>
+                <button
+                  onClick={() => moveUp(i, sections, setSections)}
+                  className="px-3 py-1 bg-black text-white rounded">↑</button>
+                <button
+                  onClick={() => moveDown(i, sections, setSections)}
+                  className="px-3 py-1 bg-black text-white rounded">↓</button>
+                <button
+                  onClick={() => removeItem(i, sections, setSections)}
+                  className="px-3 py-1 bg-red-600 text-white rounded">✕</button>
               </div>
             ))}
-          </div>
+
+            <button
+              onClick={addSection}
+              className="mt-3 bg-green-600 text-white px-4 py-2 rounded"
+            >
+              + Add Section
+            </button>
+          </>
         )}
 
-        {/* PPTX SLIDES */}
+        {/* PPT Slides */}
         {docType === "pptx" && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Slide Titles</h2>
+          <>
+            <h2 className="font-semibold mb-4">Slides</h2>
 
             {slides.map((s, i) => (
-              <div key={i} className="mb-4 bg-gray-50 p-4 rounded border">
+              <div key={i} className="flex gap-2 mb-3">
                 <input
                   value={s.title}
                   onChange={(e) => updateSlideTitle(i, e.target.value)}
-                  className="w-full p-3 bg-white border border-gray-300 text-black rounded mb-3"
+                  className="flex-1 p-2 border-2 border-gray-800 rounded text-black bg-white"
                 />
-
-                <div className="flex gap-2">
-                  <button onClick={() => moveUp(i, slides, setSlides)} className="px-3 py-2 bg-black text-white rounded">↑</button>
-                  <button onClick={() => moveDown(i, slides, setSlides)} className="px-3 py-2 bg-black text-white rounded">↓</button>
-                  <button onClick={() => removeItem(i, slides, setSlides)} className="px-3 py-2 bg-red-600 text-white rounded">✕</button>
-                </div>
+                <button onClick={() => moveUp(i, slides, setSlides)} className="px-3 bg-black text-white rounded">↑</button>
+                <button onClick={() => moveDown(i, slides, setSlides)} className="px-3 bg-black text-white rounded">↓</button>
+                <button onClick={() => removeItem(i, slides, setSlides)} className="px-3 bg-red-600 text-white rounded">✕</button>
               </div>
             ))}
-          </div>
+
+            <button
+              onClick={addSlide}
+              className="mt-3 bg-green-600 text-white px-4 py-2 rounded"
+            >
+              + Add Slide
+            </button>
+          </>
         )}
 
         {/* CREATE BUTTON */}
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center">
           <button
             onClick={createProject}
-            className="px-6 py-3 bg-black text-white rounded-lg text-lg shadow hover:bg-gray-800"
+            className="bg-black text-white px-6 py-3 rounded-lg shadow hover:bg-gray-900"
           >
             ✅ Create Project
           </button>
         </div>
+
       </div>
     </div>
   );

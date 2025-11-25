@@ -14,9 +14,8 @@ SECRET_KEY = "super_secret_key"
 ALGORITHM = "HS256"
 
 
-# -----------------------------------
 # DB SESSION
-# -----------------------------------
+
 def get_db():
     db = SessionLocal()
     try:
@@ -25,9 +24,9 @@ def get_db():
         db.close()
 
 
-# -----------------------------------
+
 # GET CURRENT USER
-# -----------------------------------
+
 def get_current_user(token: str, db: Session):
     if not token:
         raise HTTPException(status_code=401, detail="Token missing")
@@ -45,9 +44,9 @@ def get_current_user(token: str, db: Session):
     return user
 
 
-# -----------------------------------
+
 # CREATE PROJECT
-# -----------------------------------
+
 @router.post("/create")
 def create_project(
     title: str,
@@ -76,9 +75,9 @@ def create_project(
     return {"message": "Project created", "project_id": project.id}
 
 
-# -----------------------------------
+
 # OUTLINE MODEL
-# -----------------------------------
+
 class OutlineModel(BaseModel):
     outline: List[str]
 
@@ -103,9 +102,9 @@ def set_outline(
     return {"message": "Outline saved"}
 
 
-# -----------------------------------
-# ✅ NEW AI OUTLINE (NO PROJECT CREATED)
-# -----------------------------------
+
+#  NEW AI OUTLINE (NO PROJECT CREATED)
+
 class AIOutlineRequest(BaseModel):
     topic: str
     doc_type: str
@@ -140,9 +139,9 @@ def ai_outline_request(data: AIOutlineRequest):
     }
 
 
-# -----------------------------------
+
 # OLD AI OUTLINE (optional keep)
-# -----------------------------------
+
 @router.post("/{project_id}/ai-outline")
 def ai_suggest_outline(
     project_id: int,
@@ -169,9 +168,9 @@ def ai_suggest_outline(
     return {"suggested_outline": suggested}
 
 
-# -----------------------------------
+
 # GET ALL PROJECTS
-# -----------------------------------
+
 @router.get("/all")
 def get_all_projects(token: str, db: Session = Depends(get_db)):
 
@@ -180,9 +179,9 @@ def get_all_projects(token: str, db: Session = Depends(get_db)):
     return projects
 
 
-# -----------------------------------
+
 # GET SINGLE PROJECT
-# -----------------------------------
+
 @router.get("/{project_id}")
 def get_project(project_id: int, token: str, db: Session = Depends(get_db)):
 
