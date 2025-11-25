@@ -10,9 +10,8 @@ from .routes.content_routes import router as content_router
 
 app = FastAPI()
 
-# -----------------------------
 #      ENABLE CORS
-# -----------------------------
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],   # dev: allow all
@@ -21,9 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -----------------------------
 #      ROUTERS
-# -----------------------------
+
 app.include_router(auth_router)
 app.include_router(project_router)
 app.include_router(content_router)

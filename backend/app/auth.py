@@ -14,9 +14,9 @@ ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-# -----------------------------
+
 #  GET DB SESSION
-# -----------------------------
+
 def get_db():
     db = SessionLocal()
     try:
@@ -25,9 +25,9 @@ def get_db():
         db.close()
 
 
-# -----------------------------
+
 #  CREATE JWT TOKEN
-# -----------------------------
+
 def create_access_token(data: dict, expires_minutes=60):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
@@ -35,9 +35,9 @@ def create_access_token(data: dict, expires_minutes=60):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-# -----------------------------
+
 #  GET CURRENT USER (FIXED)
-# -----------------------------
+
 def get_current_user(token: str, db: Session):
     if not token:
         raise HTTPException(status_code=401, detail="Token missing")
@@ -55,9 +55,9 @@ def get_current_user(token: str, db: Session):
     return user
 
 
-# -----------------------------
+
 #  REGISTER
-# -----------------------------
+
 @router.post("/register")
 def register(email: str, password: str, db: Session = Depends(get_db)):
     hashed = pwd_context.hash(password)
@@ -72,9 +72,9 @@ def register(email: str, password: str, db: Session = Depends(get_db)):
     return {"message": "User created"}
 
 
-# -----------------------------
+
 #  LOGIN
-# -----------------------------
+
 @router.post("/login")
 def login(email: str, password: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == email).first()

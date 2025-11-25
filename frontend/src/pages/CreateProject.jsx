@@ -242,7 +242,7 @@ export default function CreateProject() {
             onClick={createProject}
             className="bg-black text-white px-6 py-3 rounded-lg shadow hover:bg-gray-900"
           >
-            ✅ Create Project
+             Create Project
           </button>
         </div>
 
