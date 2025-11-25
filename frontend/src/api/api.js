@@ -2,7 +2,7 @@
 import axios from "axios";
 
 export const API = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: "https://oceanai-backend-aoti.onrender.com",
   timeout: 30000,
 });
 
